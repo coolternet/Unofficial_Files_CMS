@@ -1,88 +1,94 @@
-<?php defined('EVO') or die('Que fais-tu là?');
+<?php
+defined('EVO') or die('Que fais-tu là?');
 
 has_permission('admin.manage_modules', true);
 
 $modules = [];
 
 if ($plugin_name = App::POST('activate_plugin')) {
-	try {
-		if (App::activateModule($plugin_name)) {
-			App::setSuccess("Module <strong>$plugin_name</strong> activé!");
-		}
-	} catch (Exception $e) {
-		App::setWarning("Impossible d'activer <strong>$plugin_name</strong>!", true);
-		App::setWarning('<pre>'.html_encode($e).'</pre>', true);
-	}
+    try {
+        if (App::activateModule($plugin_name)) {
+            App::setSuccess("Module <strong>$plugin_name</strong> activé!");
+        }
+    } catch (Exception $e) {
+        App::setWarning("Impossible d'activer <strong>$plugin_name</strong>!", true);
+        App::setWarning('<pre>' . html_encode($e->getMessage()) . '</pre>', true);
+    }
 }
 
 if ($plugin_name = App::POST('deactivate_plugin')) {
-	try {
-		if (App::deactivateModule($plugin_name)) {
-			App::setSuccess("Module <strong>$plugin_name</strong> activé!");
-		}
-	} catch (Exception $e) {
-		App::setNotice("Le module <strong>$plugin_name</strong> a été désactivé cependant il a produit une erreur:", true);
-		App::setNotice("<pre>".html_encode($e).'</pre>', true);
-	}
+    try {
+        if (App::deactivateModule($plugin_name)) {
+            App::setSuccess("Module <strong>$plugin_name</strong> désactivé!");
+        }
+    } catch (Exception $e) {
+        App::setNotice("Le module <strong>$plugin_name</strong> a été désactivé cependant il a produit une erreur:", true);
+        App::setNotice('<pre>' . html_encode($e->getMessage()) . '</pre>', true);
+    }
 }
 
 if ($plugin_name = App::POST('delete_plugin')) {
-	if (App::deleteModule($plugin_name)) {
-		App::setSuccess("Module <strong>$plugin_name</strong> supprimé!");
-	}
+    if (App::deleteModule($plugin_name)) {
+        App::setSuccess("Module <strong>$plugin_name</strong> supprimé!");
+    }
 }
 
-// Plugin import from zip
-if (isset($_FILES['plugin_file']) && is_uploaded_file($_FILES['plugin_file']['tmp_name'])) { /* Importation de theme */
-	if (($zip = new ZipArchive)->open($_FILES['plugin_file']['tmp_name']) === true) {
-		$tmpdir = sys_get_temp_dir() . '/' . random_hash(8);
-		$zip->extractTo($tmpdir);
-		$zip->close();
+// Importation de plugin depuis un fichier ZIP
+if (isset($_FILES['plugin_file']) && is_uploaded_file($_FILES['plugin_file']['tmp_name'])) {
+    $zip = new ZipArchive;
+    if ($zip->open($_FILES['plugin_file']['tmp_name']) === true) {
+        $tmpdir = sys_get_temp_dir() . '/' . random_hash(8);
+        $zip->extractTo($tmpdir);
+        $zip->close();
 
-		$manifest = glob($tmpdir . '/{module.json,*/module.json}',  GLOB_BRACE)[0] ?? null;
+        $manifest = glob($tmpdir . '/{module.json,*/module.json}', GLOB_BRACE)[0] ?? null;
 
-		if ($manifest && $module = Evo\EvoInfo::fromFile($manifest)) {
-			$target = ROOT_DIR . '/modules/' . $module->name;
-			$source = dirname($manifest);
-			rename($source, $target);
-			App::setSuccess('Module importé. Vous pouvez maintenant l\'activer.');
-		} else {
-			App::setWarning('Ce module est invalide, référez vous à la documentation ou importer le manuellement via ftp.');
-		}
+        if ($manifest && $module = Evo\EvoInfo::fromFile($manifest)) {
+            $target = ROOT_DIR . '/modules/' . $module->name;
+            $source = dirname($manifest);
 
-		rrmdir($tmpdir);
-	} else {
-		App::setWarning('Zip invalide !');
-	}
+            if (!file_exists($target) && rename($source, $target)) {
+                App::setSuccess('Module importé. Vous pouvez maintenant l\'activer.');
+            } else {
+                App::setWarning('Le module existe déjà ou une erreur est survenue.');
+            }
+        } else {
+            App::setWarning('Ce module est invalide, veuillez consulter la documentation ou l\'importer manuellement via FTP.');
+        }
+
+        rrmdir($tmpdir);
+    } else {
+        App::setWarning('Fichier ZIP invalide!');
+    }
 }
 
+// Gestion des mises à jour des modules
 $updates = &$_SESSION['updates'];
 
-foreach(glob(ROOT_DIR . '/modules/*/module.json', GLOB_BRACE) as $filename) {
-	if ($module = \Evo\EvoInfo::fromFile($filename)) {
-		$key = basename(dirname($filename));
-		$modules[$key] = $module;
-		if (empty($updates[$key]['checked']) || $updates[$key]['checked'] < time() - 300) {
-			if ($update = $module->checkForUpdates()) {
-				$url = html_encode($update->download ?: $update->homepage);
-				$ver = html_encode($update->version);
-				$updates[$key]['content'] = "<a href=\"$url\">Nouvelle version: $ver</a>";
-			} else {
-				$updates[$key] = ['checked' => time() , 'content' => ''];
-			}
-		}
-	}
+foreach (glob(ROOT_DIR . '/modules/*/module.json', GLOB_BRACE) as $filename) {
+    if ($module = \Evo\EvoInfo::fromFile($filename)) {
+        $key = basename(dirname($filename));
+        $modules[$key] = $module;
+
+        if (!isset($updates[$key]['checked']) || $updates[$key]['checked'] < time() - 300) {
+            $update = $module->checkForUpdates();
+            $updates[$key] = [
+                'checked' => time(),
+                'content' => $update ? "<a href=\"" . html_encode($update->download ?: $update->homepage) . "\">Nouvelle version: " . html_encode($update->version) . "</a>" : ''
+            ];
+        }
+    }
 }
 
+// Sauvegarde des paramètres du module actuel
 $current_plugin = App::getModule(App::GET('plugin', ''));
 
 if (IS_POST && $current_plugin && $current_plugin->settings) {
-	if (settings_save($current_plugin->settings, App::POST())) {
-		App::setSuccess('Configuration mise à jour!');
-	}
+    if (settings_save($current_plugin->settings, App::POST())) {
+        App::setSuccess('Configuration mise à jour!');
+    }
 }
 ?>
-
 <style>
 
 table td {
