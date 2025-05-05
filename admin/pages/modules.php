@@ -215,28 +215,30 @@ table th {
 							</thead>
 							<tbody>
 								<?php
-									foreach($modules as $plugin_id => $module) {
-										if($module->exports[0] == "theme") { 
-											echo "<tr>
-											<td><a href='". html_encode($module->homepage) ."' target='_blank'>". html_encode($module->name) ."</a></td>
-											<td>" . html_encode($module->description) . "</td>
-											<td>" . implode("\n", html_encode($module->authors)) . "</td>
-											<td>1.3.x</td>
-											<td>" . html_encode($module->version) . "</td>
-											<td class='right'>";
-											if (App::getModule($plugin_id)) {
-												if ($module->settings) {
-													echo '<a href="?page=modules&plugin='.$plugin_id.'" class="btn btn-sm btn-outline-primary">Paramètres</a> ';
-												}
-												echo '<button type="submit" name="deactivate_plugin" class="btn btn-sm btn-outline-warning" value="'.$plugin_id.'">Désactiver</button> ';
-											} else {
-												echo '<button type="submit" name="activate_plugin" class="btn btn-sm btn-outline-success" value="'.$plugin_id.'">Activer</button> ';
-												echo '<button type="submit" name="delete_plugin" class="btn btn-sm btn-outline-danger" value="'.$plugin_id.'" onclick="return confirm(\'Le module et tous ses fichiers seront supprimés. Continuer?\');">Supprimer</button> ';
-											}
-										echo "</td>
-										</tr>";
-										}
-									}
+                                    foreach ($modules as $plugin_id => $module) {
+                                        if ($module->exports[0] == "theme") { 
+                                            echo "<tr>
+                                            <td><a href='" . html_encode($module->homepage) . "' target='_blank'>" . html_encode($module->name) . "</a></td>
+                                            <td>" . html_encode($module->description) . "</td>
+                                            <td>" . implode("\n", is_array($module->authors) ? array_map('html_encode', $module->authors) : [html_encode($module->authors)]) . "</td>
+                                            <td>1.3.x</td>
+                                            <td>" . html_encode($module->version) . "</td>
+                                            <td class='right'>";
+
+                                            if (App::getModule($plugin_id)) {
+                                                if ($module->settings) {
+                                                    echo '<a href="?page=modules&plugin=' . $plugin_id . '" class="btn btn-sm btn-outline-primary">Paramètres</a> ';
+                                                }
+                                                echo '<button type="submit" name="deactivate_plugin" class="btn btn-sm btn-outline-warning" value="' . $plugin_id . '">Désactiver</button> ';
+                                            } else {
+                                                echo '<button type="submit" name="activate_plugin" class="btn btn-sm btn-outline-success" value="' . $plugin_id . '">Activer</button> ';
+                                                echo '<button type="submit" name="delete_plugin" class="btn btn-sm btn-outline-danger" value="' . $plugin_id . '" onclick="return confirm(\'Le module et tous ses fichiers seront supprimés. Continuer?\');">Supprimer</button> ';
+                                            }
+
+                                            echo "</td>
+                                            </tr>";
+                                        }
+                                    }
 								?>
 							</tbody>
 						</table>
@@ -256,28 +258,30 @@ table th {
 							</thead>
 							<tbody>
 								<?php
-									foreach($modules as $plugin_id => $module) {
-										if($module->exports[0] == "plugin") { 
-											echo "<tr>
-											<td><a href='". html_encode($module->homepage) ."' target='_blank'>". html_encode($module->name) ."</a></td>
-											<td>" . html_encode($module->description) . "</td>
-											<td>" . implode("\n", html_encode($module->authors)) . "</td>
-											<td>1.3.x</td>
-											<td>" . html_encode($module->version) . "</td>
-											<td class='right'>";
-											if (App::getModule($plugin_id)) {
-												if ($module->settings) {
-													echo '<a href="?page=modules&plugin='.$plugin_id.'" class="btn btn-sm btn-outline-primary">Paramètres</a> ';
-												}
-												echo '<button type="submit" name="deactivate_plugin" class="btn btn-sm btn-outline-warning" value="'.$plugin_id.'">Désactiver</button> ';
-											} else {
-												echo '<button type="submit" name="activate_plugin" class="btn btn-sm btn-outline-success" value="'.$plugin_id.'">Activer</button> ';
-												echo '<button type="submit" name="delete_plugin" class="btn btn-sm btn-outline-danger" value="'.$plugin_id.'" onclick="return confirm(\'Le module et tous ses fichiers seront supprimés. Continuer?\');">Supprimer</button> ';
-											}
-										echo "</td>
-										</tr>";
-										}
-									}
+                                    foreach ($modules as $plugin_id => $module) {
+                                        if ($module->exports[0] == "plugin") { 
+                                            echo "<tr>
+                                            <td><a href='" . html_encode($module->homepage) . "' target='_blank'>" . html_encode($module->name) . "</a></td>
+                                            <td>" . html_encode($module->description) . "</td>
+                                            <td>" . implode("\n", is_array($module->authors) ? array_map('html_encode', $module->authors) : [html_encode($module->authors)]) . "</td>
+                                            <td>1.3.x</td>
+                                            <td>" . html_encode($module->version) . "</td>
+                                            <td class='right'>";
+
+                                            if (App::getModule($plugin_id)) {
+                                                if ($module->settings) {
+                                                    echo '<a href="?page=modules&plugin=' . $plugin_id . '" class="btn btn-sm btn-outline-primary">Paramètres</a> ';
+                                                }
+                                                echo '<button type="submit" name="deactivate_plugin" class="btn btn-sm btn-outline-warning" value="' . $plugin_id . '">Désactiver</button> ';
+                                            } else {
+                                                echo '<button type="submit" name="activate_plugin" class="btn btn-sm btn-outline-success" value="' . $plugin_id . '">Activer</button> ';
+                                                echo '<button type="submit" name="delete_plugin" class="btn btn-sm btn-outline-danger" value="' . $plugin_id . '" onclick="return confirm(\'Le module et tous ses fichiers seront supprimés. Continuer?\');">Supprimer</button> ';
+                                            }
+
+                                            echo "</td>
+                                            </tr>";
+                                        }
+                                    }
 								?>
 							</tbody>
 						</table>
